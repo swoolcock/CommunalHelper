@@ -4,13 +4,15 @@ namespace Celeste.Mod.CommunalHelper.Components;
 
 public class Falling : Component
 {
+    public new Solid Entity => EntityAs<Solid>();
+
     // actions
-    public Func<bool> PlayerFallCheck;
-    public Func<bool> PlayerWaitCheck;
-    public Action ShakeSfx;
-    public Action ImpactSfx;
-    public Action LandParticles;
-    public Action FallParticles;
+    public Func<Solid, bool> PlayerFallCheck;
+    public Func<Solid, bool> PlayerWaitCheck;
+    public Action<Solid> ShakeSfx;
+    public Action<Solid> ImpactSfx;
+    public Action<Solid> LandParticles;
+    public Action<Solid> FallParticles;
 
     // config
     public float FallDelay;
@@ -28,8 +30,6 @@ public class Falling : Component
     public bool HasStartedFalling { get; private set; }
 
     private Coroutine coroutine;
-
-    public new Solid Entity => EntityAs<Solid>();
 
     public Falling() : base(false, false)
     {
@@ -64,72 +64,74 @@ public class Falling : Component
             Entity.Safe = false;
     }
 
-    private bool OnPlayerFallCheck()
+    public override void Removed(Entity entity)
     {
-        if (Entity is null)
-            return false;
-        return ClimbFall ? Entity.HasPlayerRider() : Entity.HasPlayerOnTop();
+        coroutine?.RemoveSelf();
+        base.Removed(entity);
     }
 
-    private bool OnPlayerWaitCheck()
+    private bool OnPlayerFallCheck(Solid solid) =>
+        solid is not null && (ClimbFall ? solid.HasPlayerRider() : solid.HasPlayerOnTop());
+
+    private bool OnPlayerWaitCheck(Solid solid)
     {
-        if (Entity is null)
+        if (solid is null)
             return false;
-        if (Triggered || PlayerFallCheck?.Invoke() == true)
+        if (Triggered || PlayerFallCheck?.Invoke(solid) == true)
             return true;
         if (!ClimbFall)
             return false;
-        return Entity.CollideCheck<Player>(Entity.Position - Vector2.UnitX) || Entity.CollideCheck<Player>(Entity.Position + Vector2.UnitX);
+        return solid.CollideCheck<Player>(solid.Position - Vector2.UnitX) || solid.CollideCheck<Player>(solid.Position + Vector2.UnitX);
     }
 
-    private void OnShakeSfx()
+    private void OnShakeSfx(Solid solid)
     {
-        if (Entity is not null)
-            Audio.Play(SFX.game_gen_fallblock_shake, Entity.Center);
+        if (solid is not null)
+            Audio.Play(SFX.game_gen_fallblock_shake, solid.Center);
     }
 
-    private void OnImpactSfx()
+    private void OnImpactSfx(Solid solid)
     {
-        if (Entity is not null)
-            Audio.Play(SFX.game_gen_fallblock_impact, Entity.BottomCenter);
+        if (solid is not null)
+            Audio.Play(SFX.game_gen_fallblock_impact, solid.BottomCenter);
     }
 
-    private void OnFallParticles()
+    private void OnFallParticles(Solid solid)
     {
-        if (Entity is null)
+        if (solid is null)
             return;
 
         var level = SceneAs<Level>();
-        for (int x = 2; x < Entity.Width; x += 4)
+        for (int x = 2; x < solid.Width; x += 4)
         {
-            var position = new Vector2(Entity.X + x, Entity.Y);
+            var position = new Vector2(solid.X + x, solid.Y);
             var range = Vector2.One * 4f;
             var direction = (float) Math.PI / 2f;
             var offset = new Vector2(x, -2f);
-            var check = FallUp ? Entity.BottomLeft - offset : Entity.TopLeft + offset;
+            var check = FallUp ? solid.BottomLeft - offset : solid.TopLeft + offset;
             if (level.CollideCheck<Solid>(check))
                 level.Particles.Emit(FallingBlock.P_FallDustA, 2, position, range, FallUp ? -direction : direction);
             level.Particles.Emit(FallingBlock.P_FallDustB, 2, position, range);
         }
     }
 
-    private void OnLandParticles()
+    private void OnLandParticles(Solid solid)
     {
-        if (Entity is null)
+        if (solid is null)
             return;
 
         var level = SceneAs<Level>();
-        for (int x = 2; x <= Entity.Width; x += 4)
+        for (int x = 2; x <= solid.Width; x += 4)
         {
             var offset = new Vector2(x, 3f);
-            var checkPosition = FallUp ? Entity.TopLeft - offset : Entity.BottomLeft + offset;
+            var checkPosition = FallUp ? solid.TopLeft - offset : solid.BottomLeft + offset;
             if (level.CollideCheck<Solid>(checkPosition))
             {
-                var position = new Vector2(Entity.X + x, FallUp ? Entity.Top : Entity.Bottom);
+                var position = new Vector2(solid.X + x, FallUp ? solid.Top : solid.Bottom);
                 var range = Vector2.One * 4f;
                 var fallDustDirection = -(float) Math.PI / 2f;
                 level.ParticlesFG.Emit(FallingBlock.P_FallDustA, 1, position, range, FallUp ? -fallDustDirection : fallDustDirection);
-                var landDustDirection = x >= Entity.Width / 2f ? 0f : (float) Math.PI;
+                var landDustDirection = x >= solid.Width / 2f ? 0f : (float) Math.PI;
                 level.ParticlesFG.Emit(FallingBlock.P_LandDust, 1, position, range, FallUp ? -landDustDirection : landDustDirection);
             }
         }
@@ -152,7 +154,7 @@ public class Falling : Component
         self.HasStartedFalling = false;
 
         // wait until we should fall
-        while (!self.Triggered && self.PlayerFallCheck?.Invoke() != true)
+        while (!self.Triggered && self.PlayerFallCheck?.Invoke(Entity) != true)
             yield return null;
 
         if (FallImmediately)
@@ -180,12 +182,12 @@ public class Falling : Component
             if (ShakeTime > 0)
             {
                 // start shaking
-                self.ShakeSfx?.Invoke();
+                self.ShakeSfx?.Invoke(Entity);
                 entity.StartShaking();
                 if (self.ShouldRumble) Input.Rumble(RumbleStrength.Medium, RumbleLength.Medium);
 
                 // shake for a while
-                for (float timer = ShakeTime; timer > 0 && self.PlayerWaitCheck?.Invoke() != false; timer -= Engine.DeltaTime)
+                for (float timer = ShakeTime; timer > 0 && self.PlayerWaitCheck?.Invoke(Entity) != false; timer -= Engine.DeltaTime)
                     yield return null;
 
                 // stop shaking
@@ -193,7 +195,7 @@ public class Falling : Component
             }
 
             // particles
-            self.FallParticles?.Invoke();
+            self.FallParticles?.Invoke(Entity);
 
             // fall
             float speed = 0f;
@@ -235,11 +237,11 @@ public class Falling : Component
             }
 
             // impact effects
-            self.ImpactSfx?.Invoke();
+            self.ImpactSfx?.Invoke(Entity);
             if (self.ShouldRumble) Input.Rumble(RumbleStrength.Strong, RumbleLength.Medium);
             level.DirectionalShake(FallUp ? -Vector2.UnitY : Vector2.UnitY);
             entity.StartShaking();
-            self.LandParticles?.Invoke();
+            self.LandParticles?.Invoke(Entity);
             yield return 0.2f;
             entity.StopShaking();
 
