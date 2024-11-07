@@ -1,6 +1,8 @@
 using Celeste.Mod.CommunalHelper.Components;
 using Celeste.Mod.CommunalHelper.DashStates;
+using Celeste.Mod.CommunalHelper.States;
 using MonoMod.ModInterop;
+using DreamTunnelDash = Celeste.Mod.CommunalHelper.DashStates.DreamTunnelDash;
 
 namespace Celeste.Mod.CommunalHelper;
 
@@ -18,7 +20,7 @@ public static class ModExports
 
         public static int GetDreamTunnelDashState()
         {
-            return DreamTunnelDash.StDreamTunnelDash;
+            return St.DreamTunnelDash;
         }
 
         public static bool HasDreamTunnelDash()

@@ -9,7 +9,7 @@ public static class SpeedrunTool
         typeof(SaveLoadImports).ModInterop();
 
         SaveLoadImports.RegisterStaticTypes?.Invoke(typeof(DreamTunnelDash), new string[9] {
-            "StDreamTunnelDash",
+            "St.DreamTunnelDash",
             "hasDreamTunnelDash",
             "dreamTunnelDashCount",
             "dreamTunnelDashAttacking",
