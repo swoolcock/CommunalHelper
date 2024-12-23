@@ -73,6 +73,8 @@ public class DreamTunnelEntry : AbstractPanel
 
     private readonly int originalDepth = Depths.FakeWalls;
 
+    private DreamBlockDummy dummy;
+
     public DreamTunnelEntry(Vector2 position, float size, Spikes.Directions orientation, bool overrideAllowStaticMovers, int depth)
         : base(position, size, orientation, overrideAllowStaticMovers)
     {
@@ -240,7 +242,7 @@ public class DreamTunnelEntry : AbstractPanel
         base.Added(scene);
         PlayerHasDreamDash = level.Session.Inventory.DreamDash;
 
-        scene.Add(new DreamBlockDummy(this)
+        scene.Add(dummy = new DreamBlockDummy(this)
         {
             OnActivate = Activate,
             OnFastActivate = FastActivate,
@@ -294,6 +296,8 @@ public class DreamTunnelEntry : AbstractPanel
         base.Removed(scene);
 
         scene.Tracker.GetEntity<DreamTunnelEntryRenderer>().Untrack(this, originalDepth);
+
+        dummy.RemoveSelf();
     }
 
     public void FootstepRipple(Vector2 position)
