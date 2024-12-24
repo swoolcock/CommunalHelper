@@ -106,6 +106,7 @@ public class ConnectedDreamBlock : CustomDreamBlock
 
     public Vector2 GroupBoundsMin;
     public Vector2 GroupBoundsMax;
+    public Vector2 GroupOffset;
 
     public bool HasGroup { get; private set; }
 
@@ -137,6 +138,7 @@ public class ConnectedDreamBlock : CustomDreamBlock
             GroupBoundsMax = new Vector2(Right, Bottom);
             GroupEdges = new List<SpaceJamEdge>();
             GroupCorners = new List<SpaceJamCorner>();
+            GroupOffset = new Vector2(GroupBoundsMin.X, GroupBoundsMin.Y) - Position;
             AddToGroupAndFindChildren(this);
             SetupCustomParticles(0, 0); // Parameters are ignored
 
@@ -409,7 +411,9 @@ public class ConnectedDreamBlock : CustomDreamBlock
         float whiteHeight = baseData.Get<float>("whiteHeight");
         Vector2 shake = baseData.Get<Vector2>("shake");
 
-        if (!CullHelper.IsRectangleVisible(GroupRect.X, GroupRect.Y, GroupRect.Width, GroupRect.Height, 0, camera)) {
+        Vector2 pos = Position + GroupOffset + shake;
+
+        if (!CullHelper.IsRectangleVisible(pos.X, pos.Y, GroupRect.Width, GroupRect.Height, 0, camera)) {
             return;
         }
 
