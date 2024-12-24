@@ -1,3 +1,17 @@
+--1.20.7 (24/12/2024)
+* Added missing Laser Emitter sprite entry. @Samah
+* Fixed Sound Area Trigger transition bug. @Viv
+* Fixed rendering bug with curved boosters. @AAA1459
+* Added two-dash option to dream refills. @vitellary
+* Fixed bug with Dream Falling Block behavior. @earthwise
+* Added dash speed option to custom dream blocks. @psyGamer
+* Added sound and visual customization to Dash Zip Movers. @sunsetquasar and @Viv
+* Added break and respawn time customization to custom move blocks. @aonkeeper4
+* Added Move Block Group support to all custom move block types. @aonkeeper4
+* Fixed crash bug with Dream Tunnel Entries. @sunsetquasar
+* Improved custom player state implementations. @psyGamer
+* Added zoom-out support to Cloudscape. @JaThePlayer
+
 --1.20.6 (21/08/2024)--
 * Fix Affect Sprite Trigger crashing if DynamicData is null - potential MonoMod bug
 
