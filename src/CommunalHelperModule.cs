@@ -13,6 +13,7 @@ using Celeste.Mod.CommunalHelper.States;
 using Celeste.Mod.CommunalHelper.Triggers;
 using Celeste.Mod.CommunalHelper.Triggers.StrawberryJam;
 using MonoMod.ModInterop;
+using DreamTunnelDash = Celeste.Mod.CommunalHelper.DashStates.DreamTunnelDash;
 
 namespace Celeste.Mod.CommunalHelper;
 
@@ -217,7 +218,7 @@ public class CommunalHelperModule : EverestModule
         // We create a static CrystalStaticSpinner which needs to access Tags.TransitionUpdate
         // Which wouldn't be loaded in time for EverestModule.Load
         TimedTriggerSpikes.LoadDelayed();
-        
+
         // Because of StrawberryJam, trying to hook the LaserEmitter codebase breaks the Laser Emitters because both the CommunalHelper and StrawberryJam hooks cannot be cross-compatible
         // (at least until we can update StrawberryJam to fix it)
         // Therefore, we load this hook conditionally dependent on if StrawberryJam has loaded its hooks, and use the same flags it uses to achieve the same effect

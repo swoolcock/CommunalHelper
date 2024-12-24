@@ -1,4 +1,5 @@
 ﻿using Celeste.Mod.CommunalHelper.Components;
+using Celeste.Mod.CommunalHelper.States;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
@@ -21,12 +22,11 @@ public static class DreamTunnelDash
 
     #region CommunalHelper Constants
 
-    private const string Player_dreamTunnelDashCanEndTimer = "communalHelperDreamTunnelDashCanEndTimer";
-    private const string Player_solid = "communalHelperSolid";
+    internal const string Player_dreamTunnelDashCanEndTimer = "communalHelperDreamTunnelDashCanEndTimer";
+    internal const string Player_solid = "communalHelperSolid";
 
     #endregion
 
-    public static int StDreamTunnelDash = -1;
     private static int dreamTunnelDashCount = 0;
     public static int DreamTunnelDashCount
     {
@@ -118,9 +118,6 @@ public static class DreamTunnelDash
         IL.Celeste.FakeWall.Update -= State_DreamDashNotEqual;
         IL.Celeste.Spring.OnCollide -= State_DreamDashEqual;
         IL.Celeste.Solid.Update -= State_DreamDashNotEqual_And;
-
-        if (StDreamTunnelDash != -1)
-            Extensions.UnregisterState(StDreamTunnelDash);
     }
 
     public static void InitializeParticles()
@@ -141,11 +138,6 @@ public static class DreamTunnelDash
     {
         orig(player, position, spriteMode);
         dreamTunnelDashAttacking = false;
-
-        if (StDreamTunnelDash != -1)
-            Extensions.UnregisterState(StDreamTunnelDash);
-        StDreamTunnelDash = player.StateMachine.AddState(player.DreamTunnelDashUpdate, null, player.DreamTunnelDashBegin, player.DreamTunnelDashEnd);
-        Extensions.RegisterState(StDreamTunnelDash, "StDreamTunnelDash");
     }
 
     private static void Player_DashBegin(On.Celeste.Player.orig_DashBegin orig, Player self)
@@ -196,7 +188,7 @@ public static class DreamTunnelDash
     {
         /*
          * adds a check for !dreamTunnelDashAttacking to
-         * if (player.onGround && player.DashDir.X != 0f && player.DashDir.Y > 0f && player.Speed.Y > 0f && 
+         * if (player.onGround && player.DashDir.X != 0f && player.DashDir.Y > 0f && player.Speed.Y > 0f &&
          *  (!player.Inventory.DreamDash || !player.CollideCheck<DreamBlock>(player.Position + Vector2.UnitY)))
          */
         ILCursor cursor = new(il);
@@ -223,14 +215,14 @@ public static class DreamTunnelDash
             self.CreateDreamTrail();
     }
 
-    // StDreamTunnelDash check handled in IL hook
+    // St.DreamTunnelDash check handled in IL hook
     private static void Player_OnCollideH(On.Celeste.Player.orig_OnCollideH orig, Player self, CollisionData data)
     {
         if (!self.DreamTunnelDashCheck(Vector2.UnitX * Math.Sign(self.Speed.X)))
             orig(self, data);
     }
 
-    // StDreamTunnelDash check handled in IL hook
+    // St.DreamTunnelDash check handled in IL hook
     private static void Player_OnCollideV(On.Celeste.Player.orig_OnCollideV orig, Player self, CollisionData data)
     {
         if (!self.DreamTunnelDashCheck(Vector2.UnitY * Math.Sign(self.Speed.Y)))
@@ -330,8 +322,8 @@ public static class DreamTunnelDash
             Instruction idx = cursor.Next;
             // Duplicate the Player State
             cursor.Emit(OpCodes.Dup);
-            // Check whether the state matches StDreamTunnelDash AND we want them to match
-            cursor.EmitDelegate<Func<int, bool>>(st => st == StDreamTunnelDash == equal ^ and);
+            // Check whether the state matches St.DreamTunnelDash AND we want them to match
+            cursor.EmitDelegate<Func<int, bool>>(st => st == St.DreamTunnelDash == equal ^ and);
             // If not, skip the rest of the emitted instructions
             cursor.Emit(OpCodes.Brfalse_S, cursor.Next);
 
@@ -375,7 +367,7 @@ public static class DreamTunnelDash
         if (DynamicData.For(self).Get<Coroutine>("transition") is not null)
             return;
 
-        if (player.StateMachine.State == StDreamTunnelDash)
+        if (player.StateMachine.State == St.DreamTunnelDash)
         {
             Rectangle bounds = self.Bounds;
             if (player.Right > bounds.Right || player.Left < bounds.Left || player.Top < bounds.Top || player.Bottom > bounds.Bottom)
@@ -406,7 +398,7 @@ public static class DreamTunnelDash
     // Handles cases with locked camera
     private static void Player_OnBoundsH(On.Celeste.Player.orig_OnBoundsH orig, Player self)
     {
-        if (self.StateMachine.State == StDreamTunnelDash)
+        if (self.StateMachine.State == St.DreamTunnelDash)
         {
             self.DreamDashDie(self.Position);
             return;
@@ -418,7 +410,7 @@ public static class DreamTunnelDash
     // Handles cases with locked camera
     private static void Player_OnBoundsV(On.Celeste.Player.orig_OnBoundsV orig, Player self)
     {
-        if (self.StateMachine.State == StDreamTunnelDash)
+        if (self.StateMachine.State == St.DreamTunnelDash)
         {
             self.DreamDashDie(self.Position);
             return;
@@ -462,7 +454,7 @@ public static class DreamTunnelDash
         return true;
     }
 
-    private static bool DreamTunneledIntoDeath(this Player player)
+    internal static bool DreamTunneledIntoDeath(this Player player)
     {
         if (player.CollideCheck<DreamBlock>())
         {
@@ -564,7 +556,7 @@ public static class DreamTunnelDash
                 || (solid is DashBlock b && !DynamicData.For(b).Get<bool>("canDash"))))
             {
                 DynamicData playerData = player.GetData();
-                player.StateMachine.State = StDreamTunnelDash;
+                player.StateMachine.State = St.DreamTunnelDash;
                 solid.Components.GetAll<DreamTunnelInteraction>().ToList().ForEach(i => i.OnPlayerEnter(player));
                 playerData.Set(Player_solid, solid);
                 playerData.Set("dashAttackTimer", 0f);
@@ -584,187 +576,6 @@ public static class DreamTunnelDash
         }
         return false;
     }
-
-    #region DreamTunnelState
-
-    private static readonly PropertyInfo p_Player_StartedDashing
-        = typeof(Player).GetProperty(nameof(Player.StartedDashing), BindingFlags.Instance | BindingFlags.Public);
-
-    private static void DreamTunnelDashBegin(this Player player)
-    {
-        DynamicData playerData = player.GetData();
-
-        p_Player_StartedDashing.SetValue(player, false);
-
-        SoundSource dreamSfxLoop = playerData.Get<SoundSource>("dreamSfxLoop");
-        if (dreamSfxLoop == null)
-        {
-            dreamSfxLoop = new SoundSource();
-            player.Add(dreamSfxLoop);
-            playerData.Set("dreamSfxLoop", dreamSfxLoop);
-        }
-
-        // Extra correction for fast moving solids, this does not cause issues with dashdir leniency
-        Vector2 dir = player.DashDir.Sign();
-        if (!player.CollideCheck<Solid, DreamBlock>() && player.CollideCheck<Solid, DreamBlock>(player.Position + dir))
-        {
-            player.NaiveMove(dir);
-        }
-
-        // Hackfix to unduck when downdiagonal dashing next to solid, caused by forcing the player into the solid as part of fast-moving solid correction
-        if (player.DashDir.Y > 0)
-            player.Ducking = false;
-
-        player.Speed = player.DashDir * Player_DashSpeed;
-        player.TreatNaive = true;
-        player.Depth = Depths.PlayerDreamDashing;
-        playerData.Set(Player_dreamTunnelDashCanEndTimer, 0.1f);
-        player.Stamina = Player_ClimbMaxStamina;
-        playerData.Set("dreamJump", false);
-        player.Play(SFX.char_mad_dreamblock_enter, null, 0f);
-        if (FeatherMode)
-            player.Loop(dreamSfxLoop, CustomSFX.game_connectedDreamBlock_dreamblock_fly_travel);
-        else
-            player.Loop(dreamSfxLoop, SFX.char_mad_dreamblock_travel);
-
-        // Allows DreamDashListener to also work from here, as this is basically a dream block, right?
-        foreach (DreamDashListener component in player.Scene.Tracker.GetComponents<DreamDashListener>())
-        {
-            component.OnDreamDash?.Invoke(player.DashDir);
-        }
-    }
-
-    private static void DreamTunnelDashEnd(this Player player)
-    {
-        DynamicData playerData = player.GetData();
-
-        player.Depth = Depths.Player;
-        if (!playerData.Get<bool>("dreamJump"))
-        {
-            player.AutoJump = true;
-            player.AutoJumpTimer = 0f;
-        }
-        if (!player.Inventory.NoRefills)
-        {
-            player.RefillDash();
-        }
-        player.RefillStamina();
-        player.TreatNaive = false;
-        Solid solid = playerData.Get<Solid>(Player_solid);
-        if (solid != null)
-        {
-            if (player.DashDir.X != 0f)
-            {
-                playerData.Set("jumpGraceTimer", 0.1f);
-                playerData.Set("dreamJump", true);
-            }
-            else
-            {
-                playerData.Set("jumpGraceTimer", 0f);
-            }
-            solid.Components.GetAll<DreamTunnelInteraction>().ToList().ForEach(i => i.OnPlayerExit(player));
-            solid = null;
-        }
-        player.Stop(playerData.Get<SoundSource>("dreamSfxLoop"));
-        player.Play(SFX.char_mad_dreamblock_exit, null, 0f);
-        Input.Rumble(RumbleStrength.Medium, RumbleLength.Short);
-    }
-
-    private static int DreamTunnelDashUpdate(this Player player)
-    {
-        DynamicData playerData = player.GetData();
-
-        if (FeatherMode)
-        {
-            Vector2 input = Input.Aim.Value.SafeNormalize();
-            if (input != Vector2.Zero)
-            {
-                Vector2 vector = player.Speed.SafeNormalize();
-                if (vector != Vector2.Zero)
-                {
-                    vector = Vector2.Dot(input, vector) != -0.8f ? vector.RotateTowards(input.Angle(), 5f * Engine.DeltaTime) : vector;
-                    vector = vector.CorrectJoystickPrecision();
-                    player.DashDir = vector;
-                    player.Speed = vector * 240f;
-                }
-            }
-        }
-
-        Input.Rumble(RumbleStrength.Light, RumbleLength.Medium);
-        Vector2 position = player.Position;
-
-        Vector2 factor = Vector2.One;
-        if (player.IsInverted())
-            factor.Y = -1;
-        player.NaiveMove(player.Speed * factor * Engine.DeltaTime);
-
-        float dreamDashCanEndTimer = playerData.Get<float>(Player_dreamTunnelDashCanEndTimer);
-        if (dreamDashCanEndTimer > 0f)
-        {
-            playerData.Set(Player_dreamTunnelDashCanEndTimer, dreamDashCanEndTimer - Engine.DeltaTime);
-        }
-        Solid solid = player.CollideFirst<Solid, DreamBlock>();
-        if (solid == null)
-        {
-            if (player.DreamTunneledIntoDeath())
-            {
-                player.DreamDashDie(position);
-            }
-            else if (playerData.Get<float>(Player_dreamTunnelDashCanEndTimer) <= 0f)
-            {
-                Celeste.Freeze(0.05f);
-                if (Input.Jump.Pressed && player.DashDir.X != 0f)
-                {
-                    playerData.Set("dreamJump", true);
-                    player.Jump(true, true);
-                }
-                else if (player.DashDir.Y >= 0f || player.DashDir.X != 0f)
-                {
-                    if (player.DashDir.X > 0f && player.CollideCheck<DreamBlock>(player.Position - (Vector2.UnitX * 5f)))
-                    {
-                        player.MoveHExact(-5, null, null);
-                    }
-                    else if (player.DashDir.X < 0f && player.CollideCheck<DreamBlock>(player.Position + (Vector2.UnitX * 5f)))
-                    {
-                        player.MoveHExact(5, null, null);
-                    }
-                    bool flag = player.ClimbCheck(-1, 0);
-                    bool flag2 = player.ClimbCheck(1, 0);
-                    int moveX = playerData.Get<int>("moveX");
-                    if (Input.GrabCheck && ((moveX == 1 && flag2) || (moveX == -1 && flag)))
-                    {
-                        player.Facing = (Facings) moveX;
-                        if (!SaveData.Instance.Assists.NoGrabbing)
-                        {
-                            return Player.StClimb;
-                        }
-                        player.ClimbTrigger(moveX);
-                        player.Speed.X = 0f;
-                    }
-                }
-                return Player.StNormal;
-            }
-        }
-        else
-        {
-            playerData.Set(Player_solid, solid);
-            if (player.Scene.OnInterval(0.1f))
-            {
-                player.CreateDreamTrail();
-            }
-            Level level = playerData.Get<Level>("level");
-            if (level.OnInterval(0.04f))
-            {
-                DisplacementRenderer.Burst burst = level.Displacement.AddBurst(player.Center, 0.3f, 0f, 40f, 1f, null, null);
-                burst.WorldClipCollider = solid.Collider;
-                burst.WorldClipPadding = 2;
-            }
-        }
-
-        return StDreamTunnelDash;
-    }
-
-    #endregion
 
     #endregion
 
