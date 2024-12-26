@@ -1,5 +1,6 @@
 ﻿using Celeste.Mod.Backdrops;
 using Celeste.Mod.CommunalHelper.Utils;
+using Celeste.Mod.Core;
 using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
 using System.Linq;
@@ -167,7 +168,7 @@ public class Cloudscape : Backdrop
                     timer = Calc.Random.Range(parent.lightningMinDelay, parent.lightningMaxDelay);
                     flashColor = parent.lightningFlashColor;
                     flashTimer = flashDuration = Calc.Random.Range(parent.lightningMinDuration, parent.lightningMaxDuration);
-                    intensity = Settings.Instance.DisableFlashes ? 0 : parent.lightningIntensity * Ease.CubeIn(Calc.Random.NextFloat());
+                    intensity = CoreModule.Settings.AllowLightning ? parent.lightningIntensity * Ease.CubeIn(Calc.Random.NextFloat()) : 0;
                     targetColorA = Util.ColorArrayLerp(Calc.Random.NextFloat() * (parent.lightningColors.Length - 1), parent.lightningColors);
                     targetColorB = Util.ColorArrayLerp(Calc.Random.NextFloat() * (parent.lightningColors.Length - 1), parent.lightningColors);
                 }
