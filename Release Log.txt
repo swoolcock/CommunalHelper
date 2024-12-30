@@ -1,3 +1,6 @@
+--1.20.10 (29/12/2024)
+* Hotfix: rolled back new Cloudscape zoom support feature due to bug
+
 --1.20.9 (29/12/2024)
 * Hotfix: rolled back new Move Block Group support feature due to bug
 
