@@ -49,7 +49,18 @@ public class ConnectedMoveBlock : ConnectedSolid
         }
     }
 
-    protected GroupableMoveBlock groupable;
+    public enum MovementState
+    {
+        Idling,
+        Moving,
+        Breaking
+    }
+
+    public MovementState State;
+
+    public MoveBlockGroup Group { get; internal set; }
+    public bool GroupSignal { get; internal set; }
+    public bool CheckGroupRespawn { get; internal set; }
 
     protected static MTexture[,] masterEdges = new MTexture[3, 3];
     protected static MTexture[,] masterInnerCorners = new MTexture[2, 2];
@@ -217,7 +228,6 @@ public class ConnectedMoveBlock : ConnectedSolid
         homeAngle = targetAngle = angle = direction.Angle();
         Add(moveSfx = new SoundSource());
         Add(new Coroutine(Controller()));
-        Add(groupable = new GroupableMoveBlock());
         UpdateColors();
         Add(new LightOcclude(0.5f));
     }
@@ -243,8 +253,8 @@ public class ConnectedMoveBlock : ConnectedSolid
             bool startingBroken = false, startingByActivator = false;
             curMoveCheck = false;
             triggered = false;
-            groupable.State = GroupableMoveBlock.MovementState.Idling;
-            while (!triggered && !startingByActivator && !startingBroken && !groupable.GroupTriggerSignal)
+            State = MovementState.Idling;
+            while (!triggered && !startingByActivator && !startingBroken && !GroupSignal)
             {
                 if (startInvisible && !AnySetEnabled(BreakerFlags))
                 {
@@ -255,10 +265,18 @@ public class ConnectedMoveBlock : ConnectedSolid
                 startingByActivator = AnySetEnabled(ActivatorFlags);
             }
 
-            yield return new SwapImmediately(groupable.SyncGroupTriggers());
+            if (Group is not null && Group.SyncActivation)
+            {
+                if (!GroupSignal)
+                    Group.Trigger(); // block was manually triggered
+                // ensures all moveblock in the group start simultaneously
+                while (!GroupSignal) // wait for signal to come back
+                    yield return null;
+                GroupSignal = false; // reset
+            }
 
             Audio.Play(ActivateSoundEffect, Position);
-            groupable.State = GroupableMoveBlock.MovementState.Moving;
+            State = MovementState.Moving;
             StartShaking(0.2f);
             ActivateParticles();
             if (!startingBroken)
@@ -279,7 +297,7 @@ public class ConnectedMoveBlock : ConnectedSolid
                 }
             }
             else
-                groupable.State = GroupableMoveBlock.MovementState.Breaking;
+                State = MovementState.Breaking;
             yield return 0.2f;
             targetSpeed = moveSpeed;
             moveSfx.Play(SFX.game_04_arrowblock_move_loop);
@@ -360,7 +378,7 @@ public class ConnectedMoveBlock : ConnectedSolid
 
             Audio.Play(BreakSoundEffect, Position);
             moveSfx.Stop();
-            groupable.State = GroupableMoveBlock.MovementState.Breaking;
+            State = MovementState.Breaking;
             speed = targetSpeed = 0f;
             angle = targetAngle = homeAngle;
             StartShaking(0.2f);
@@ -431,7 +449,12 @@ public class ConnectedMoveBlock : ConnectedSolid
             curMoveCheck = false;
             yield return waitTime;
 
-            yield return new SwapImmediately(groupable.WaitForRespawn());
+            if (Group is not null)
+            {
+                CheckGroupRespawn = true;
+                while (!Group.CanRespawn(this))
+                    yield return null;
+            }
 
             foreach (MoveBlockDebris item in debris)
             {
@@ -465,7 +488,7 @@ public class ConnectedMoveBlock : ConnectedSolid
                 item4.RemoveSelf();
             }
 
-            groupable.WaitingForRespawn = false;
+            CheckGroupRespawn = false;
         Rebuild:
             Audio.Play(ReappearSoundEffect, Position);
             Visible = true;
@@ -530,10 +553,10 @@ public class ConnectedMoveBlock : ConnectedSolid
 
     protected void UpdateColors()
     {
-        Color value = groupable.State switch
+        Color value = State switch
         {
-            GroupableMoveBlock.MovementState.Moving => pressedBgFill,
-            GroupableMoveBlock.MovementState.Breaking => breakingBgFill,
+            MovementState.Moving => pressedBgFill,
+            MovementState.Breaking => breakingBgFill,
             _ => idleBgFill,
         };
         fillColor = Color.Lerp(fillColor, value, 10f * Engine.DeltaTime);
@@ -750,7 +773,7 @@ public class ConnectedMoveBlock : ConnectedSolid
                 Get_MoveSfx = () => moveSfx,
                 OnBreakAction = (coroutine) =>
                 {
-                    groupable.State = GroupableMoveBlock.MovementState.Breaking;
+                    State = MovementState.Breaking;
                     MoveBlockRedirectable.GetControllerDelegate(dynamicData, 5)(coroutine);
                 },
                 OnResumeAction = (coroutine) =>
@@ -778,7 +801,7 @@ public class ConnectedMoveBlock : ConnectedSolid
     {
         if (!IsGroupVisible())
             return;
-
+        
         Vector2 position = Position;
         Position += Shake;
 
@@ -791,14 +814,14 @@ public class ConnectedMoveBlock : ConnectedSolid
         int arrowIndex = Calc.Clamp((int) Math.Floor(((0f - angle + ((float) Math.PI * 2f)) % ((float) Math.PI * 2f) / ((float) Math.PI * 2f) * 8f) + 0.5f), 0, 7);
         foreach (Hitbox hitbox in ArrowsList)
         {
-            Color arrowColor = groupable.Group is null
+            Color arrowColor = Group is null
                 ? fillColor
-                : Color.Lerp(fillColor, groupable.Group.Color, Calc.SineMap(Scene.TimeActive * 3, 0, 1));
+                : Color.Lerp(fillColor, Group.Color, Calc.SineMap(Scene.TimeActive * 3, 0, 1));
 
             Vector2 vec = hitbox.Center + Position;
             Draw.Rect(vec.X - 4f, vec.Y - 4f, 8f, 8f, arrowColor);
 
-            if (groupable.State != GroupableMoveBlock.MovementState.Breaking)
+            if (State != MovementState.Breaking)
             {
                 if (arrows == null)
                     masterArrows[arrowIndex].DrawCentered(vec);
