@@ -34,7 +34,7 @@ end
 local function createPlacements()
     local placements = { }
     for orientation = 0,3 do
-        for cassetteIndex = 0,3 do
+        for cassetteIndex = 0,1 do
             table.insert(placements, createPlacement(orientation, cassetteIndex))
         end
     end
@@ -58,8 +58,8 @@ local paintbrush = {
             editable = false,
             options = {
                 -- we only support blue and pink for now since that's the only sprites we have
-                ["0 - Blue"] = 0,
-                ["1 - Rose"] = 1,
+                ["Blue"] = 0,
+                ["Rose"] = 1,
             },
         }
     },
