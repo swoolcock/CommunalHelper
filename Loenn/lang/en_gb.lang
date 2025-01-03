@@ -911,6 +911,20 @@ entities.CommunalHelper/SJ/Paintbrush.placements.name.left_1=Paintbrush (Left, P
 entities.CommunalHelper/SJ/Paintbrush.placements.name.right_0=Paintbrush (Right, Blue) [Strawberry Jam]
 entities.CommunalHelper/SJ/Paintbrush.placements.name.right_1=Paintbrush (Right, Pink) [Strawberry Jam]
 
+# [Strawberry Jam] Pellet Emitter
+entities.CommunalHelper/SJ/PelletEmitter.placements.name.up_0=Pellet Emitter (Up, Blue) [Strawberry Jam]
+entities.CommunalHelper/SJ/PelletEmitter.placements.name.up_1=Pellet Emitter (Up, Pink) [Strawberry Jam]
+entities.CommunalHelper/SJ/PelletEmitter.placements.name.up_both=Pellet Emitter (Up, Both) [Strawberry Jam]
+entities.CommunalHelper/SJ/PelletEmitter.placements.name.down_0=Pellet Emitter (Down, Blue) [Strawberry Jam]
+entities.CommunalHelper/SJ/PelletEmitter.placements.name.down_1=Pellet Emitter (Down, Pink) [Strawberry Jam]
+entities.CommunalHelper/SJ/PelletEmitter.placements.name.down_both=Pellet Emitter (Down, Both) [Strawberry Jam]
+entities.CommunalHelper/SJ/PelletEmitter.placements.name.left_0=Pellet Emitter (Left, Blue) [Strawberry Jam]
+entities.CommunalHelper/SJ/PelletEmitter.placements.name.left_1=Pellet Emitter (Left, Pink) [Strawberry Jam]
+entities.CommunalHelper/SJ/PelletEmitter.placements.name.left_both=Pellet Emitter (Left, Both) [Strawberry Jam]
+entities.CommunalHelper/SJ/PelletEmitter.placements.name.right_0=Pellet Emitter (Right, Blue) [Strawberry Jam]
+entities.CommunalHelper/SJ/PelletEmitter.placements.name.right_1=Pellet Emitter (Right, Pink) [Strawberry Jam]
+entities.CommunalHelper/SJ/PelletEmitter.placements.name.right_both=Pellet Emitter (Right, Both) [Strawberry Jam]
+
 # ---------------------- TRIGGERS --------------------------
 
 # [Strawberry Jam] Show Hitbox Trigger

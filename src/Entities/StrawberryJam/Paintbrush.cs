@@ -281,7 +281,8 @@ public class Paintbrush : Entity {
                 OnStart = activated => {
                     setState(activated && !HalfLength ? LaserState.Firing : LaserState.Idle, true);
                 },
-                OnTick = cbm => {
+                OnTick = (cbm, isSwap) => {
+                    if (isSwap) return;
                     var data = DynamicData.For(cbm);
                     float tempoMult = data.Get<float>("tempoMult");
                     int beatsPerTick = data.Get<int>("beatsPerTick");
