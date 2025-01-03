@@ -66,6 +66,7 @@ public class Paintbrush : Entity {
     private float chargeDelayRemaining;
     private float burstTimeRemaining;
     private float fireSoundDelayRemaining;
+    private Vector2 shakeOffset;
 
     private static ParticleType blueCooldownParticle;
     private static ParticleType pinkCooldownParticle;
@@ -329,8 +330,18 @@ public class Paintbrush : Entity {
             OnAttach = p => Depth = p.Depth + 1,
             SolidChecker = s => Collide.CheckPoint(s, Position - Orientation.Direction()),
             JumpThruChecker = jt => Collide.CheckPoint(jt, Position - Orientation.Direction()),
-            OnEnable = () => Collidable = true,
-            OnDisable = () => Collidable = false,
+            OnEnable = () =>
+            {
+                Collidable = Visible = Active = true;
+                State = LaserState.Idle;
+            },
+            OnDisable = () =>
+            {
+                Collidable = Visible = Active = false;
+                State = LaserState.Idle;
+                fireSource.Stop();
+            },
+            OnShake = v => shakeOffset += v,
             OnMove = v =>
             {
                 Position += v;
@@ -424,12 +435,17 @@ public class Paintbrush : Entity {
     }
 
     public override void Render() {
+        // telegraphs should always be accurate, so don't shake them
+        if (State is LaserState.Charging) {
+            foreach (var hitbox in beamHitboxes)
+                renderTelegraph(hitbox);
+        }
+        
+        Position += shakeOffset;
+        
         if (State is LaserState.Burst or LaserState.Firing) {
             for (int i = 0; i < beamHitboxes.Length; i++)
                 renderBeam(beamHitboxes[i], i);
-        } else if (State == LaserState.Charging) {
-            foreach (var hitbox in beamHitboxes)
-                renderTelegraph(hitbox);
         }
 
         var offset = Orientation.Vertical() ? new Vector2(tileSize, 0) : new Vector2(0, tileSize);
@@ -464,6 +480,8 @@ public class Paintbrush : Entity {
                 paintParticlesSprite.Render();
             }
         }
+
+        Position -= shakeOffset;
     }
 
     private void renderBeam(Hitbox beamHitbox, int index) {

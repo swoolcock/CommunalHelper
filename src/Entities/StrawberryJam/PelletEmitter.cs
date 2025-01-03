@@ -17,6 +17,7 @@ public class PelletEmitter : Entity
     public float WiggleFrequency { get; }
     public float WiggleAmount { get; }
     public bool WiggleHitbox { get; }
+    public bool KillPlayer { get; }
     public LaserOrientations Orientation { get; }
         
     #endregion
@@ -60,6 +61,7 @@ public class PelletEmitter : Entity
     private string fireSound(int index) => index == 0 ? CustomSFX.paint_emitter_blue : CustomSFX.paint_emitter_pink;
 
     private SingletonAudioController sfx;
+    private Vector2 shakeOffset;
 
     public PelletEmitter(EntityData data, Vector2 offset) : base(data.Position + offset) {
         LoadParticles();
@@ -74,7 +76,8 @@ public class PelletEmitter : Entity
         WiggleAmount = data.Float("wiggleAmount", 2f);
         WiggleHitbox = data.Bool("wiggleHitbox", false);
         Orientation = data.Enum("orientation", LaserOrientations.Up);
-
+        KillPlayer = data.Bool("killPlayer", true);
+        
         Direction = Orientation.Direction();
         Origin = Orientation.Direction() * shotOriginOffset;
         Collider = new Circle(6, Direction.X * 2, Direction.Y * 2);
@@ -87,6 +90,20 @@ public class PelletEmitter : Entity
 
         EmitterSprite.Play(idleAnimationKey);
 
+        Add(new StaticMover
+        {
+            JumpThruChecker = CollideCheck,
+            SolidChecker = CollideCheck,
+            OnAttach = p => Depth = p.Depth - 1,
+            OnEnable = () =>
+            {
+                Collidable = Visible = Active = true;
+                EmitterSprite.Play(idleAnimationKey);
+            },
+            OnDisable = () => Collidable = Visible = Active = false,
+            OnShake = v => shakeOffset += v,
+        });
+        
         Add(EmitterSprite,
             new LedgeBlocker(),
             new PlayerCollider(OnPlayerCollide),
@@ -135,7 +152,18 @@ public class PelletEmitter : Entity
         sfx?.Play(fireSound(index), this, 0.01f);
     }
 
-    private void OnPlayerCollide(Player player) => player.Die((player.Center - Position).SafeNormalize());
+    private void OnPlayerCollide(Player player)
+    {
+        if (!KillPlayer) return;
+        player.Die((player.Center - Position).SafeNormalize());
+    }
+
+    public override void Render()
+    {
+        Position += shakeOffset;
+        base.Render();
+        Position -= shakeOffset;
+    }
 
     [Pooled]
     [Tracked]
