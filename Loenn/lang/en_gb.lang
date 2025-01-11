@@ -900,6 +900,26 @@ entities.CommunalHelper/SJ/LaserEmitter.placements.name.up=Laser Emitter (Up) [S
 entities.CommunalHelper/SJ/LaserEmitter.placements.name.down=Laser Emitter (Down) [Strawberry Jam]
 entities.CommunalHelper/SJ/LaserEmitter.placements.name.left=Laser Emitter (Left) [Strawberry Jam]
 entities.CommunalHelper/SJ/LaserEmitter.placements.name.right=Laser Emitter (Right) [Strawberry Jam]
+entities.CommunalHelper/SJ/LaserEmitter.attributes.description.color=Colour of the laser emitted.
+entities.CommunalHelper/SJ/LaserEmitter.attributes.description.colorChannel=Colour of linked zip movers that will be triggered if enabled.
+entities.CommunalHelper/SJ/LaserEmitter.attributes.description.alpha=Base alpha if flickering is disabled.
+entities.CommunalHelper/SJ/LaserEmitter.attributes.description.flicker=Whether or not the laser beam should flicker.
+entities.CommunalHelper/SJ/LaserEmitter.attributes.description.thickness=The thickness of the beam and killbox, where the middle third is rendered at twice the alpha of the rest.
+entities.CommunalHelper/SJ/LaserEmitter.attributes.description.killPlayer=Whether or not the laser beam should kill the player on contact.
+entities.CommunalHelper/SJ/LaserEmitter.attributes.description.collideWithSolids=Whether or not the laser beam will stop at solids.
+entities.CommunalHelper/SJ/LaserEmitter.attributes.description.disableLasers=Whether or not the laser beam will disable other lasers with the same colour channel.
+entities.CommunalHelper/SJ/LaserEmitter.attributes.description.triggerZipMovers=Whether or not the laser beam will trigger zip movers with the same colour channel.
+entities.CommunalHelper/SJ/LaserEmitter.attributes.description.style=The rendering style to use. Simple will display a single sprite, Tinted will tint an overlay with the laser colour.
+entities.CommunalHelper/SJ/LaserEmitter.attributes.description.leniency=Shrinks the collider hitbox by this many pixels either side. Defaults to 1.
+entities.CommunalHelper/SJ/LaserEmitter.attributes.description.beamAboveEmitter=Whether or not the beam should be rendered above the emitter sprite.
+entities.CommunalHelper/SJ/LaserEmitter.attributes.description.emitterColliderWidth=The width of the emitter if it were pointing up or down. Defaults to 14.
+entities.CommunalHelper/SJ/LaserEmitter.attributes.description.emitterColliderHeight=The height of the emitter if it were pointing up or down. Defaults to 6.
+entities.CommunalHelper/SJ/LaserEmitter.attributes.description.emitSparks=Whether the laser should emit sparks if it collides with a solid. Defaults to true.
+entities.CommunalHelper/SJ/LaserEmitter.attributes.description.orientation=The direction the emitter faces.
+entities.CommunalHelper/SJ/LaserEmitter.attributes.description.useTintOverlay=Whether or not to tint the emitter sprite with the laser color.
+entities.CommunalHelper/SJ/LaserEmitter.attributes.description.flagAction=The action to perform on the flag (if provided) when the laser is triggered.
+entities.CommunalHelper/SJ/LaserEmitter.attributes.description.flagName=The name of the flag that will be set when the laser is triggered.
+entities.CommunalHelper/SJ/LaserEmitter.attributes.description.spriteName=The name of the custom emitter sprite ID to use. Leave blank to use the default sprite.
 
 # [Strawberry Jam] Paintbrush
 entities.CommunalHelper/SJ/Paintbrush.placements.name.up_0=Paintbrush (Up, Blue) [Strawberry Jam]
@@ -910,6 +930,11 @@ entities.CommunalHelper/SJ/Paintbrush.placements.name.left_0=Paintbrush (Left, B
 entities.CommunalHelper/SJ/Paintbrush.placements.name.left_1=Paintbrush (Left, Pink) [Strawberry Jam]
 entities.CommunalHelper/SJ/Paintbrush.placements.name.right_0=Paintbrush (Right, Blue) [Strawberry Jam]
 entities.CommunalHelper/SJ/Paintbrush.placements.name.right_1=Paintbrush (Right, Pink) [Strawberry Jam]
+entities.CommunalHelper/SJ/Paintbrush.attributes.description.cassetteIndex=The cassette color on which to fire. Defaults to Blue. The charging animation will play in the previous tick.
+entities.CommunalHelper/SJ/Paintbrush.attributes.description.killPlayer=Whether or not the beam will kill the player on contact.
+entities.CommunalHelper/SJ/Paintbrush.attributes.description.collideWithSolids=Whether or not the beam will stop at solids.
+entities.CommunalHelper/SJ/Paintbrush.attributes.description.halfLength=If set to true, the beam will only stay on for half the length of a cassette swap (one tick).
+entities.CommunalHelper/SJ/Paintbrush.attributes.description.orientation=The direction the paintbrush faces.
 
 # [Strawberry Jam] Pellet Emitter
 entities.CommunalHelper/SJ/PelletEmitter.placements.name.up_0=Pellet Emitter (Up, Blue) [Strawberry Jam]
@@ -924,6 +949,16 @@ entities.CommunalHelper/SJ/PelletEmitter.placements.name.left_both=Pellet Emitte
 entities.CommunalHelper/SJ/PelletEmitter.placements.name.right_0=Pellet Emitter (Right, Blue) [Strawberry Jam]
 entities.CommunalHelper/SJ/PelletEmitter.placements.name.right_1=Pellet Emitter (Right, Pink) [Strawberry Jam]
 entities.CommunalHelper/SJ/PelletEmitter.placements.name.right_both=Pellet Emitter (Right, Both) [Strawberry Jam]
+entities.CommunalHelper/SJ/PelletEmitter.attributes.description.pelletSpeed=The speed at which pellets will travel, in pixels per second. Defaults to 100.
+entities.CommunalHelper/SJ/PelletEmitter.attributes.description.pelletCount=The number of pellets to fire at once. Defaults to 1.
+entities.CommunalHelper/SJ/PelletEmitter.attributes.description.pelletDelay=The delay in seconds between each shot, if pelletCount is greater than 1. Defaults to 0.25.
+entities.CommunalHelper/SJ/PelletEmitter.attributes.description.cassetteIndex=The cassette color on which to fire. Defaults to Blue.
+entities.CommunalHelper/SJ/PelletEmitter.attributes.description.orientation=The direction the emitter faces.
+entities.CommunalHelper/SJ/PelletEmitter.attributes.description.killPlayer=Whether or not the emitter hitbox should kill the player.
+entities.CommunalHelper/SJ/PelletEmitter.attributes.description.collideWithSolids=Whether or not shots should collide with solids. Defaults to true.
+entities.CommunalHelper/SJ/PelletEmitter.attributes.description.wiggleFrequency=The number of times the pellet should wiggle back and forth per second. Defaults to 2.
+entities.CommunalHelper/SJ/PelletEmitter.attributes.description.wiggleAmount=The amplitude of the wiggle. Defaults to 2. Set to 0 to disable wiggling, causing pellets to travel in a straight line.
+entities.CommunalHelper/SJ/PelletEmitter.attributes.description.wiggleHitbox=Whether or not the pellet hitbox should move following the wiggle.
 
 # ---------------------- TRIGGERS --------------------------
 
